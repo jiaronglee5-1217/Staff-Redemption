@@ -2,92 +2,71 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 function App() {
-  const [originalUrl, setOriginalUrl] = useState('');
-  const [convertedUrl, setConvertedUrl] = useState('');
-  const [shortCode, setShortCode] = useState('');
-  const [revertedUrl, setRevertedUrl] = useState('');
-  const [onClick, setOnclick] = useState(false);
 
-  const handleConvert = async (e: React.FormEvent) => {
-    e.preventDefault();
-   try {
-        const res = await axios.post('http://localhost:4000/api/convert', { originalUrl }, {
-        headers: {
-        'Content-Type': 'application/json'
-        }
-    });
-        setConvertedUrl(res.data.shortUrl);
-        } catch (error) {
-        console.error("Error converting URL:", error);
-        alert("Failed to convert URL. See console for details.");
-    }
+  type StaffRedemptionRes = {
+  staff: string;
+  team: string;
+  redeemed_at: string;
+  redemption_remark: string;
+};
+  const [file, setFile] = useState<File | null>(null);
+  const [redemptionResponse, setRedemtionResponse] = useState<StaffRedemptionRes[]>();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFile(e.target.files?.[0] ?? null);
   };
 
-  const handleRevert = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setOnclick(true);
-   try {
-        const res = await axios.post('http://localhost:4000/api/revert', { shortCode }, {
-        headers: {
-        'Content-Type': 'application/json'
-        }
+  const handleUpload = async () => {
+    if (!file) return;
+
+    try {
+    const  { data } = await axios.post('http://localhost:4000/api/upload-csv', file, {
+      headers: {
+        'Content-Type': 'text/csv'
+      },
     });
-        setRevertedUrl(res.data.revertedUrl);
-        } catch (error) {
-        console.error("Error reverting URL:", error);
-        alert("Failed to  revert URL. See console for details.");
+    if (!Array.isArray(data.result)) {
+      window.alert(data.result.message);
+    } else {
+      setRedemtionResponse(data.result);
     }
+  } catch (err) {
+    console.error(err);
+  }
   };
+
 
   return (
-    <>
-      <div style={{ padding: '2rem' }}>
-        <h2>Please enter your URL here</h2>
-          <form onSubmit={handleConvert}>
-            <input
-              type="text"
-              size={50}
-              placeholder="Enter your URL"
-              value={originalUrl}
-              onChange={(e) => setOriginalUrl(e.target.value)} />
-            <button style={{ marginLeft: '2rem' }} type="submit">Convert</button>
-          </form>
-          {convertedUrl && (
-            <div>
-              <p>Converted URL:</p>
-              <a href={convertedUrl} target="_blank" rel="noopener noreferrer">{convertedUrl}</a>
-              <i style={{ marginLeft: 10 }}>(please remember the short code before refreshing the page)</i>
-            </div>
-        )}
+    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', justifyContent: 'center'}}>
+      <div  style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', alignSelf: 'center'}}>
+        <input type="file" accept=".csv" onChange={handleFileChange} />
+        <button onClick={handleUpload}>Upload CSV</button>
       </div>
-      <div style={{ padding: '2rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '0.5rem'}}>
-          <h2>This is to revert the shorten version of URL back to original</h2>
-          <i>(please enter the short code on the transfomed URL)</i>
-        </div>
-        <form onSubmit={handleRevert}>
-          <input
-            type="text"
-            size={50}
-            placeholder="Enter the short code given above, (right after 4000/)"
-            value={shortCode}
-            onChange={(e) => setShortCode(e.target.value)} />
-          <button style={{ marginLeft: '2rem' }} type="submit">Revert</button>
-        </form>
-        <div>
-          {onClick && (
-            revertedUrl ? (
-              <>
-                <p>Reverted URL:</p>
-                <a href={revertedUrl} target="_blank" rel="noopener noreferrer">{revertedUrl}</a>
-              </>
-            ) : (
-              <p>URL is not found in database, please double check the short code you entered.</p>
-            )
-          )}
-        </div>
-      </div>
-    </>
+
+      <table border={1} cellPadding={8} hidden={!redemptionResponse} style={{ alignSelf: 'center', width: '100%', marginTop: 30 }}>
+        <thead>
+          <tr>
+            <th>Staff ID</th>
+            <th>Team Name</th>
+            <th>Redemption Time</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {redemptionResponse?.map((staff) => {
+            return (
+              <tr key={staff.staff}>
+                <td>{staff.staff}</td>
+                <td>{staff.team}</td>
+                <td>{staff.redeemed_at}</td>
+                <td>{staff.redemption_remark}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+    </table>
+  </div>
   );
 }
 

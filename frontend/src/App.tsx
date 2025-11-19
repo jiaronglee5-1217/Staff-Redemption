@@ -37,17 +37,17 @@ function App() {
 
 
   return (
-    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', justifyContent: 'center'}}>
-      <div  style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', alignSelf: 'center'}}>
+    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100vh', justifyContent: 'center'}}>
+      <div>
         <input type="file" accept=".csv" onChange={handleFileChange} />
         <button onClick={handleUpload}>Upload CSV</button>
       </div>
 
-      <table border={1} cellPadding={8} hidden={!redemptionResponse} style={{ alignSelf: 'center', width: '100%', marginTop: 30 }}>
+      <table border={1} cellPadding={8} hidden={!redemptionResponse} style={{ width: '60%', marginTop: 30 }}>
         <thead>
           <tr>
             <th>Staff ID</th>
-            <th>Team Name</th>
+            <th style={{ minWidth: 100 }}>Team Name</th>
             <th>Redemption Time</th>
             <th>Remarks</th>
           </tr>
